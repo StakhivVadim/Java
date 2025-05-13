@@ -3,18 +3,22 @@ package hangman;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Hangman {
-    private final int maxTries = 20;
-    private boolean[] openIndexes;
-    private String guessedWord;
-    private GameState state = GameState.NOT_STARTED;
-    private int numTries = 0;
+    static final int maxTries = 5;
+    static boolean[] openIndexes;
+    static String guessedWord;
+    static List<Character> errorChar;
+    static GameState state = GameState.NOT_STARTED;
+    static int numTries = 0;
 
-    public void startGame() {
+    public static void startGame() {
+    	errorChar = new ArrayList<>();
+    	numTries = 0;
         generateWord();
         System.out.println("The word is guessed.");
         showProgress();
@@ -26,13 +30,22 @@ public class Hangman {
             if (input.isEmpty()) continue;
 
             char guessedLetter = input.charAt(0);
-            numTries++;
-
-            for (int i = 0; i < guessedWord.length(); i++) {
-                if (guessedWord.charAt(i) == guessedLetter) {
-                    openIndexes[i] = true;
+            if (guessedWord.contains(String.valueOf(guessedLetter)))
+            {
+            	for (int i = 0; i < guessedWord.length(); i++) {
+                    if (guessedWord.charAt(i) == guessedLetter) {
+                        openIndexes[i] = true;
+                    }
                 }
             }
+            else {
+                if (errorChar.contains(guessedLetter)) {
+                    System.out.println("You have entered this letter");
+                } else {
+                    errorChar.add(guessedLetter);
+                }
+            }
+            numTries++;
 
             showProgress();
 
@@ -49,7 +62,7 @@ public class Hangman {
         System.out.println("You " + state + "! The word was: " + guessedWord);
     }
 
-    private void showProgress() {
+    private static void showProgress() {
         for (int i = 0; i < guessedWord.length(); i++) {
             if (!openIndexes[i]) {
                 System.out.print("_");
@@ -57,17 +70,17 @@ public class Hangman {
                 System.out.print(guessedWord.charAt(i));
             }
         }
-        System.out.println("\nNumber of tries = " + numTries + "\n");
+        System.out.println("\nErrors (" + numTries + "): " + errorChar + "\n\n\n\n\n");
     }
 
-    private boolean checkWin() {
+    private static boolean checkWin() {
         for (boolean isOpen : openIndexes) {
             if (!isOpen) return false;
         }
         return true;
     }
 
-    private void generateWord() {
+    private static void generateWord() {
         try {
             List<String> words = Files.readAllLines(Paths.get("Dictionary/WordsStockRus.txt"));
             Random random = new Random();
